@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@color/background">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Input:"
         android:textSize="16sp"
+        android:textColor="@color/text_secondary"
         android:layout_marginBottom="8dp"
         android:layout_gravity="start" />
 
-    <com.dangerousthings.nfc.raw.NfcEditText
+    <com.vivokey.rawnfc.NfcEditText
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000"
-        android:textColor="#FFFFFF"
+        android:background="@color/terminal_background"
+        android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:fontFamily="monospace"
         android:gravity="top|start"
@@ -37,16 +40,17 @@
         android:layout_height="wrap_content"
         android:text="Output:"
         android:textSize="16sp"
+        android:textColor="@color/text_secondary"
         android:layout_marginBottom="8dp"
         android:layout_gravity="start" />
 
-    <com.dangerousthings.nfc.raw.NfcEditText
+    <com.vivokey.rawnfc.NfcEditText
         android:id="@+id/output"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#000000"
-        android:textColor="#00FF00"
+        android:background="@color/terminal_background"
+        android:textColor="@color/terminal_output"
         android:textSize="16sp"
         android:fontFamily="monospace"
         android:gravity="top|start"

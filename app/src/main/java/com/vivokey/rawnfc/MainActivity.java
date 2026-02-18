@@ -1,4 +1,4 @@
-package com.dangerousthings.nfc.raw;
+package com.vivokey.rawnfc;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,8 +13,14 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -57,8 +63,22 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        setupWindowInsets();
+
         getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeAsUpIndicator(android.R.drawable.ic_menu_info_details);
+        getActionBar().setHomeAsUpIndicator(R.drawable.ic_vivokey_logo);
+        getActionBar().setDisplayShowTitleEnabled(false);
+        getActionBar().setDisplayShowCustomEnabled(true);
+
+        View customView = LayoutInflater.from(this).inflate(R.layout.action_bar_title, null);
+        TextView titleView = customView.findViewById(R.id.action_bar_title);
+        TextView versionView = customView.findViewById(R.id.action_bar_version);
+        versionView.setText("v" + BuildConfig.VERSION_NAME);
+        titleView.setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vivokey.com/rawnfc"));
+            startActivity(browserIntent);
+        });
+        getActionBar().setCustomView(customView);
 
         inputView = findViewById(R.id.input);
         outputView = findViewById(R.id.output);
@@ -80,10 +100,43 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         enableNfcReaderMode();
     }
 
+    private void setupWindowInsets() {
+        LinearLayout rootLayout = findViewById(R.id.root_layout);
+        final int basePadding = rootLayout.getPaddingTop();
+
+        rootLayout.setOnApplyWindowInsetsListener((v, insets) -> {
+            int topInset;
+            int bottomInset;
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                // API 30+: Use proper IME inset handling
+                int systemBars = WindowInsets.Type.systemBars();
+                int ime = WindowInsets.Type.ime();
+                topInset = insets.getInsets(systemBars).top;
+                bottomInset = Math.max(insets.getInsets(systemBars).bottom, insets.getInsets(ime).bottom);
+            } else {
+                // Legacy: Use deprecated methods
+                topInset = insets.getSystemWindowInsetTop();
+                bottomInset = insets.getSystemWindowInsetBottom();
+            }
+
+            v.setPadding(
+                v.getPaddingLeft(),
+                basePadding + topInset,
+                v.getPaddingRight(),
+                basePadding + bottomInset
+            );
+
+            return insets;
+        });
+
+        rootLayout.requestApplyInsets();
+    }
+
     private void handleIntent(Intent intent) {
         if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             Uri uri = intent.getData();
-            if ("dnfc".equals(uri.getScheme())) {
+            if ("rawnfc".equals(uri.getScheme())) {
                 int techIndex = Arrays.asList(TECH_CLASS_SIMPLE_NAMES).indexOf(uri.getHost());
                 if (techIndex != -1) {
                     selectedTechnology = techIndex;
@@ -170,7 +223,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://dngr.us/rawnfc"));
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://vivokey.com/rawnfc"));
             startActivity(browserIntent);
         } else if (item.getItemId() == 1) {
             selectedTechnology = null;

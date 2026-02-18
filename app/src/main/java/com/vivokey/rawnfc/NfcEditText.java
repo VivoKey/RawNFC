@@ -1,4 +1,4 @@
-package com.dangerousthings.nfc.raw;
+package com.vivokey.rawnfc;
 
 import android.content.Context;
 import android.graphics.Canvas;

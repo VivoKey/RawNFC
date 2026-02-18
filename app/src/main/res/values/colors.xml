@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- VivoKey Brand Colors -->
+    <color name="vivokey_cyan_light">#69848F</color>
+    <color name="vivokey_cyan">#6493B3</color>
+    <color name="vivokey_cyan_dark">#3F6780</color>
+    <color name="vivokey_dark_grey">#1A2124</color>
+
+    <!-- Theme Colors -->
+    <color name="colorPrimary">@color/vivokey_cyan</color>
+    <color name="colorPrimaryDark">@color/vivokey_cyan_dark</color>
+    <color name="colorAccent">@color/vivokey_cyan_light</color>
+
+    <!-- UI Colors -->
+    <color name="background">#181F22</color>
+    <color name="surface">@color/vivokey_dark_grey</color>
+    <color name="terminal_background">#050708</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">@color/vivokey_cyan_light</color>
+    <color name="terminal_output">@color/vivokey_cyan</color>
+
+    <!-- Launcher Icon -->
+    <color name="ic_launcher_background">#3F6780</color>
+</resources>
