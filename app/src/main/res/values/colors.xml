@@ -19,6 +19,12 @@
     <color name="text_secondary">@color/vivokey_cyan_light</color>
     <color name="terminal_output">@color/vivokey_cyan</color>
 
+    <!-- Drawer Colors -->
+    <color name="drawer_section_bg">#151B1E</color>
+    <color name="drawer_item_bg">#1A2124</color>
+    <color name="chip_selected">#6493B3</color>
+    <color name="chip_unselected">#2A3439</color>
+
     <!-- Launcher Icon -->
     <color name="ic_launcher_background">#3F6780</color>
 </resources>
