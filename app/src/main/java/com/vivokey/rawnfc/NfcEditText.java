@@ -22,7 +22,6 @@ public class NfcEditText extends EditText {
     private static final int LINE_NUMBER_MARGIN = 25;
     private static final int ICON_SIZE_DP = 14;
     private static final int ICON_TOUCH_TARGET_DP = 44;
-    private static final long REPLAY_HOLD_THRESHOLD_MS = 150;
 
     private final Rect rect = new Rect();
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -172,9 +171,18 @@ public class NfcEditText extends EditText {
     private void drawLineNumbers(Canvas canvas) {
         int lineCount = getLineCount();
         int lineNumber = 1;
+        CharSequence text = getText();
         for (int i = 0; i < lineCount; i++) {
             int baseline = getLineBounds(i, null);
-            if (i == 0 || getText().charAt(getLayout().getLineStart(i) - 1) == '\n') {
+            if (i == 0 || text.charAt(getLayout().getLineStart(i) - 1) == '\n') {
+                // Check if this logical line is a divider (all em-dashes)
+                int lineStart = getLayout().getLineStart(i);
+                int lineEnd = getLayout().getLineEnd(i);
+                String lineText = text.subSequence(lineStart, lineEnd).toString().trim();
+                if (!lineText.isEmpty() && lineText.chars().allMatch(c -> c == '\u2014')) {
+                    // Skip numbering divider lines
+                    continue;
+                }
                 String lineNumberStr = String.format("%2d", lineNumber);
                 canvas.drawText(lineNumberStr, rect.left + LINE_NUMBER_MARGIN, baseline, paint);
                 lineNumber++;
@@ -305,12 +313,9 @@ public class NfcEditText extends EditText {
                             resetTouchState();
                             return true;
                         } else if (touchInReplayZone) {
-                            long holdTime = System.currentTimeMillis() - touchDownTime;
-                            if (holdTime >= REPLAY_HOLD_THRESHOLD_MS) {
-                                actionListener.onReplay(touchDownLine, lineText.trim());
-                                resetTouchState();
-                                return true;
-                            }
+                            actionListener.onReplay(touchDownLine, lineText.trim());
+                            resetTouchState();
+                            return true;
                         }
                     }
                 }

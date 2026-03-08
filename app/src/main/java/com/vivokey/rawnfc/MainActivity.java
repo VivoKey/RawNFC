@@ -78,6 +78,9 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
     private String connectedTagUid;
     private List<String> lastTxCommands;
     private ToneGenerator toneGenerator;
+    private View connectionIndicator;
+    private final Handler connectionCheckHandler = new Handler(Looper.getMainLooper());
+    private static final long CONNECTION_CHECK_INTERVAL_MS = 500;
     private MenuItem saveAllMenuItem;
     private final Handler saveAllDebounceHandler = new Handler(Looper.getMainLooper());
     private static final long SAVE_ALL_DEBOUNCE_MS = 500;
@@ -113,6 +116,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
 
         inputView = findViewById(R.id.input);
         outputView = findViewById(R.id.output);
+        connectionIndicator = findViewById(R.id.connection_indicator);
         inputView.addTextChangedListener(new HexTextWatcher());
         inputView.setOnCommandActionListener(this);
         inputView.setShowActionIcons(true);
@@ -205,7 +209,15 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
 
     @Override
     public void onReplay(int line, String hex) {
-        if (connectedTag == null || !connectedTag.isConnected()) {
+        boolean connected = false;
+        try {
+            connected = connectedTag != null && connectedTag.isConnected();
+        } catch (SecurityException e) {
+            connectedTag = null;
+            connectedTagUid = null;
+        }
+        if (!connected) {
+            setConnected(false);
             Toast.makeText(this, "No tag connected — tap to connect first", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -225,6 +237,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
             } catch (IOException e) {
                 connectedTag = null;
                 connectedTagUid = null;
+                setConnected(false);
                 runOnUiThread(() -> {
                     toneGenerator.startTone(ToneGenerator.TONE_PROP_NACK, 100);
                     Toast.makeText(this, "Tag lost: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -357,9 +370,14 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
     public void onTagDiscovered(Tag tag) {
         // If we think we're still connected, check if the tag is actually alive
         if (connectedTag != null) {
-            if (connectedTag.isConnected()) return; // genuinely still connected, skip
-            // Tag was lost — clean up and allow new connection
+            try {
+                if (connectedTag.isConnected()) return; // genuinely still connected, skip
+            } catch (SecurityException e) {
+                // Tag object expired — treat as disconnected
+            }
             connectedTag = null;
+            connectedTagUid = null;
+            setConnected(false);
         }
 
         TagTechnology tagTech = getTagTechnology(tag);
@@ -370,11 +388,13 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
             SystemClock.sleep(250);
             connectedTag = tagTech;
             connectedTagUid = Hex.encodeHexString(tag.getId(), false);
+            setConnected(true);
             processCommands(tagTech);
             // Keep connection alive for replay — tag stays powered
         } catch (IOException e) {
             connectedTag = null;
             connectedTagUid = null;
+            setConnected(false);
             appendOutputText(e.getMessage());
         }
     }
@@ -669,6 +689,43 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
         updateHeaderPrefix();
     }
 
+    private void setConnected(boolean connected) {
+        connectionCheckHandler.removeCallbacksAndMessages(null);
+        if (connected) {
+            scheduleConnectionCheck();
+        }
+        runOnUiThread(() -> {
+            if (connectionIndicator == null) return;
+            connectionIndicator.setBackgroundResource(
+                connected ? R.drawable.circle_connected : R.drawable.circle_disconnected);
+            if (!connected) {
+                inputView.clearAllExecutedLines();
+            }
+        });
+    }
+
+    private void scheduleConnectionCheck() {
+        connectionCheckHandler.postDelayed(() -> {
+            if (connectedTag == null) {
+                setConnected(false);
+                return;
+            }
+            boolean alive = false;
+            try {
+                alive = connectedTag.isConnected();
+            } catch (SecurityException e) {
+                // tag expired
+            }
+            if (!alive) {
+                connectedTag = null;
+                connectedTagUid = null;
+                setConnected(false);
+            } else {
+                scheduleConnectionCheck();
+            }
+        }, CONNECTION_CHECK_INTERVAL_MS);
+    }
+
     private void updateHeaderPrefix() {
         if (isNfcVSelected() && nfcvHeaderEnabled) {
             String flagsHex = String.format("%02X ", computeNfcVFlags());
@@ -848,16 +905,21 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
         updateNfcvConfigVisibility();
     }
 
+    private boolean reformatting = false;
+
     private class HexTextWatcher implements TextWatcher {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (reformatting) return;
             clearOutputText();
             inputView.clearAllExecutedLines();
             // Allow next tag tap to process commands again
             connectedTag = null;
+            connectedTagUid = null;
+            setConnected(false);
             debounceSaveAllUpdate();
         }
 
@@ -901,7 +963,9 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
             }
             String newText = result.toString();
             if (!newText.equals(original)) {
+                reformatting = true;
                 s.replace(0, s.length(), newText);
+                reformatting = false;
 
                 // Restore cursor: find position after hexCharsBefore hex chars on cursorLine
                 int newPos = 0;

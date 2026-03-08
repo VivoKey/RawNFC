@@ -38,7 +38,16 @@ Both options let you assign a label and group via a dialog.
 
 ### Replaying Commands
 
-After executing commands, each input line gets a circular replay icon on the right edge. Long-press (150ms+) the replay icon to re-send that individual command to the still-connected tag without re-running the full sequence.
+After executing commands, each input line gets a circular replay icon on the right edge. Tap the replay icon to re-send that individual command to the still-connected tag without re-running the full sequence. Replay responses appear below a divider line in the output.
+
+### Connection Indicator
+
+A status dot appears in the "Input:" label row (rightmost icon):
+
+- **Green** — tag is connected and ready for replay
+- **Grey** — no tag connected
+
+The indicator updates automatically when a tag connects or disconnects. When the tag is lost, replay icons are cleared.
 
 ### NFC-V Header Calculator (ISO 15693)
 
@@ -86,6 +95,8 @@ rawnfc://NfcV/20+04?vheader=1&addr=1&opt=1
 | `dual=1` | Dual sub-carrier |
 
 **Sharing links:** Tap the **share icon** next to the "Input:" label to copy a `rawnfc://` deep link for the current input and settings to the clipboard.
+
+**Paste-to-parse:** Pasting a `rawnfc://` link directly into the input field automatically parses it — sets the technology, V-header flags, and populates the commands. Useful on devices (e.g., GrapheneOS) where custom URI schemes are blocked.
 
 ### NFC Dump
 
