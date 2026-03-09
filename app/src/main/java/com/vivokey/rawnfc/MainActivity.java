@@ -457,7 +457,9 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
         }
         saveAllMenuItem = menu.add(0, MENU_ID_SAVE_ALL, 1, "Save All");
         saveAllMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        saveAllMenuItem.setEnabled(isSaveAllValid());
+        boolean valid = isSaveAllValid();
+        saveAllMenuItem.setEnabled(valid);
+        saveAllMenuItem.setVisible(valid);
         return true;
     }
 
@@ -672,7 +674,9 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback,
         saveAllDebounceHandler.removeCallbacksAndMessages(null);
         saveAllDebounceHandler.postDelayed(() -> {
             if (saveAllMenuItem != null) {
-                saveAllMenuItem.setEnabled(isSaveAllValid());
+                boolean valid = isSaveAllValid();
+                saveAllMenuItem.setEnabled(valid);
+                saveAllMenuItem.setVisible(valid);
             }
         }, SAVE_ALL_DEBOUNCE_MS);
     }

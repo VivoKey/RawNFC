@@ -31,7 +31,7 @@ Commands can be filtered by protocol using the chip bar at the top of the drawer
 
 ### Saving Commands
 
-- **Save All** (action bar menu) — saves all input lines as a named command set. Requires 2+ lines of complete hex bytes. The button is disabled until input is valid (with debounce to prevent flicker while typing).
+- **Save All** (action bar menu) — saves all input lines as a named command set. Requires 2+ lines of complete hex bytes. The button is hidden until input is valid.
 - **Per-line save** — tap the bookmark icon in the left gutter of any input line to save that single command. Rejects incomplete bytes.
 
 Both options let you assign a label and group via a dialog.
