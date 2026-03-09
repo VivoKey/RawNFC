@@ -20,6 +20,7 @@ repositories {
 dependencies {
     implementation 'commons-codec:commons-codec:1.15'
     implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'androidx.drawerlayout:drawerlayout:1.2.0'
 }
 
 android {
